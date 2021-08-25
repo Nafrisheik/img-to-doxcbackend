@@ -45,33 +45,29 @@ apiRouter.post("/img/uploads", upload.array("image"), (req, res) => {
   const images = req.files;
   let date = new Date().toString().split(" ").join("").split("+");
   date = date[0].toString().split(":").join("");
+  // const doc = new Document({})
+  const children = images.map((img) => {
+    return new Paragraph({
+      children: [
+        new ImageRun({
+          data: fs.readFileSync(img.path),
+          transformation: {
+            width: 500,
+            height: 500,
+          },
+        }),
+      ],
+    });
+  });
 
   const doc = new Document({
     sections: [
       {
-        properties: {},
-        children: [
-          images.forEach((img) => {
-            console.log(img.path);
-            new Paragraph("Hello World"),
-
-            new Paragraph({
-              children: [
-                new ImageRun({
-                  data: fs.readFileSync(img.path),
-                  transformation: {
-                    width: 500,
-                    height: 500,
-                  }
-                }),
-              ],
-            });
-          }),
-        ],
+        children: children,
       },
     ],
   });
-  // console.log(doc);
+
   Packer.toBuffer(doc).then((buffer) => {
     fs.writeFileSync(date + ".docx", buffer);
     res.sendFile(date + ".docx", {
